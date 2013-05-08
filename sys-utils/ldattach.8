@@ -5,7 +5,7 @@
 ldattach \- attach a line discipline to a serial line
 .SH SYNOPSIS
 .B ldattach
-.RB [ \-dhV78neo12 ]
+.RB [ \-dhV78neo12rt ]
 .RB [ \-s
 .IR speed ]
 .RB [ \-i
@@ -124,6 +124,12 @@ Sets the number of stop bits of the serial line to one.
 .TP
 \fB-2\fP | \fB--twostopbits\fP
 Sets the number of stop bits of the serial line to two.
+.TP
+\fB-r\fP | \fB--rts\fP
+Assert RTS pin.
+.TP
+\fB-t\fP | \fB--dtr\fP
+Assert DTR pin.
 .TP
 \fB-i\fP \fIvalue\fP | \fB--iflag\fP [\fB-\fP]\fIvalue\fP{,...}
 Sets the specified bits in the c_iflag word of the serial line.

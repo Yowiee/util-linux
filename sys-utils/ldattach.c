@@ -168,6 +168,8 @@ static void __attribute__ ((__noreturn__)) usage(int exitcode)
 	fputs(_(" -o, --oddparity         set parity to odd\n"), out);
 	fputs(_(" -1, --onestopbit        set stop bits to one\n"), out);
 	fputs(_(" -2, --twostopbits       set stop bits to two\n"), out);
+	fputs(_(" -r, --rts               assert RTS pin\n"), out);
+	fputs(_(" -t, --dtr               assert DTR pin\n"), out);
 	fputs(_(" -i, --iflag [-]<iflag>  set input mode flag\n"), out);
 
 	fputs(USAGE_SEPARATOR, out);
@@ -211,6 +213,7 @@ int main(int argc, char **argv)
 	int tty_fd;
 	struct termios ts;
 	int speed = 0, bits = '-', parity = '-', stop = '-';
+	int rts = 0, dtr = 0, serial_status = 0;
 	int set_iflag = 0, clr_iflag = 0;
 	int ldisc;
 	int optc;
@@ -224,6 +227,8 @@ int main(int argc, char **argv)
 		{"oddparity", no_argument, NULL, 'o'},
 		{"onestopbit", no_argument, NULL, '1'},
 		{"twostopbits", no_argument, NULL, '2'},
+		{"rts", no_argument, NULL, 'r'},
+		{"dtr", no_argument, NULL, 't'},
 		{"iflag", required_argument, NULL, 'i'},
 		{"help", no_argument, NULL, 'h'},
 		{"version", no_argument, NULL, 'V'},
@@ -240,7 +245,7 @@ int main(int argc, char **argv)
 	if (argc == 0)
 		usage(EXIT_SUCCESS);
 	while ((optc =
-		getopt_long(argc, argv, "dhV78neo12s:i:", opttbl,
+		getopt_long(argc, argv, "dhV78neo12rts:i:", opttbl,
 			    NULL)) >= 0) {
 		switch (optc) {
 		case 'd':
@@ -258,6 +263,12 @@ int main(int argc, char **argv)
 		case 'e':
 		case 'o':
 			parity = optc;
+			break;
+		case 'r':
+			rts = 1;
+			break;
+		case 't':
+			dtr = 1;
 			break;
 		case 's':
 			speed = strtos32_or_err(optarg, _("invalid speed argument"));
@@ -350,8 +361,23 @@ int main(int argc, char **argv)
 		err(EXIT_FAILURE,
 		    _("cannot set terminal attributes for %s"), dev);
 
-	dbg("set to raw %d %c%c%c: cflag=0x%x",
-	    speed, bits, parity, stop, ts.c_cflag);
+	/* assert RTS and/or DTR pins */
+	if (ioctl(tty_fd, TIOCMGET, &serial_status) < 0)
+		err(EXIT_FAILURE,
+		    _("cannot set terminal pins for %s"), dev);
+	
+	if (rts)
+		serial_status |= TIOCM_RTS;
+		
+	if (dtr)
+		serial_status |= TIOCM_DTR;
+		
+	if (ioctl(tty_fd, TIOCMSET, &serial_status) < 0)
+		err(EXIT_FAILURE,
+		    _("cannot set terminal pins for %s"), dev);
+	
+	dbg("set to raw %d %c%c%c: RTS=%d, DTR=%d, cflag=0x%x",
+	    speed, bits, parity, stop, rts, cts, ts.c_cflag);
 
 	/* Attach the line discpline. */
 	if (ioctl(tty_fd, TIOCSETD, &ldisc) < 0)
