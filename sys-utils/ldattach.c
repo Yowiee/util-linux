@@ -364,7 +364,7 @@ int main(int argc, char **argv)
 	/* assert RTS and/or DTR pins */
 	if (ioctl(tty_fd, TIOCMGET, &serial_status) < 0)
 		err(EXIT_FAILURE,
-		    _("cannot set terminal pins for %s"), dev);
+		    _("cannot get terminal status for %s"), dev);
 	
 	if (rts)
 		serial_status |= TIOCM_RTS;
