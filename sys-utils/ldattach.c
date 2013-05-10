@@ -377,7 +377,7 @@ int main(int argc, char **argv)
 		    _("cannot set terminal pins for %s"), dev);
 	
 	dbg("set to raw %d %c%c%c: RTS=%d, DTR=%d, cflag=0x%x",
-	    speed, bits, parity, stop, rts, cts, ts.c_cflag);
+	    speed, bits, parity, stop, rts, dtr, ts.c_cflag);
 
 	/* Attach the line discpline. */
 	if (ioctl(tty_fd, TIOCSETD, &ldisc) < 0)
